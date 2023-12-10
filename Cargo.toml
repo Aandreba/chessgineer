@@ -1,0 +1,19 @@
+[package]
+name = "stockfish"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[build-dependencies]
+async_zip = { version = "0.0.15", features = ["full"] }
+color-eyre = "0.6.2"
+flate2 = "1.0.28"
+futures = "0.3.29"
+octocrab = "0.32.0"
+reqwest = { version = "0.11.22", features = ["stream"] }
+tar = "0.4.40"
+tokio = { version = "1.35.0", features = ["full"] }
+tokio-util = { version = "0.7.10", features = ["io"] }
