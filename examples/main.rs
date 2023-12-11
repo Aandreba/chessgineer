@@ -1,4 +1,4 @@
-use stockfish::{game::Game, Context};
+use chessgineer::{game::Game, Context};
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {

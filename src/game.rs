@@ -37,6 +37,11 @@ impl<'a> Game<'a> {
         self
     }
 
+    #[inline]
+    pub fn into_state(self) -> chess::Game {
+        return self.game;
+    }
+
     pub fn calculate(&mut self) -> CalculationBuilder<'a, '_> {
         return CalculationBuilder {
             game: self,
