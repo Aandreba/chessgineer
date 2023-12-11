@@ -1,7 +1,6 @@
 use futures::StreamExt;
-use game::Game;
 use messages::Messages;
-use std::{ffi::OsStr, io::ErrorKind, process::Stdio};
+use std::{ffi::OsStr, io::ErrorKind, mem::ManuallyDrop, process::Stdio};
 use tokio::{
     io::AsyncWriteExt,
     process::{Child, ChildStdin, Command},
@@ -14,7 +13,7 @@ pub mod messages;
 
 #[derive(Debug)]
 pub struct Context {
-    stdin: ChildStdin,
+    stdin: ManuallyDrop<ChildStdin>,
     messages: Messages,
     options: Vec<UciOptionConfig>,
 }
@@ -32,12 +31,6 @@ impl Context {
         &self.options
     }
 
-    pub async fn start_game(&mut self) -> std::io::Result<Game<'_>> {
-        self.stdin.write_all(b"ucinewgame\n").await?;
-        self.wait_readyness().await?;
-        return Ok(Game { cx: self });
-    }
-
     pub async fn wait_readyness(&mut self) -> std::io::Result<()> {
         self.stdin.write_all(b"isready\n").await?;
         return match self.messages.next().await.transpose()? {
@@ -48,6 +41,13 @@ impl Context {
             )),
             None => Err(ErrorKind::UnexpectedEof.into()),
         };
+    }
+}
+
+impl Drop for Context {
+    fn drop(&mut self) {
+        let mut stdin = unsafe { ManuallyDrop::take(&mut self.stdin) };
+        tokio::spawn(async move { stdin.write_all(b"quit\n").await });
     }
 }
 
@@ -74,7 +74,7 @@ impl Builder {
             .spawn()?;
 
         let mut this = Context {
-            stdin: stdin.unwrap(),
+            stdin: ManuallyDrop::new(stdin.unwrap()),
             messages: Messages::new(stdout.unwrap()),
             options: Vec::new(),
         };
