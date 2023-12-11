@@ -1,3 +1,4 @@
+/*
 use std::{
     ops::Deref,
     path::{Path, PathBuf},
@@ -10,13 +11,6 @@ use tar::Archive;
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
     let _ = color_eyre::install();
-    let octocrab = octocrab::instance();
-
-    let latest_release = octocrab
-        .repos("official-stockfish", "Stockfish")
-        .releases()
-        .get_latest()
-        .await?;
 
     let platform = match std::env::var("CARGO_CFG_TARGET_OS")?.as_str() {
         "linux" => "ubuntu",
@@ -58,6 +52,15 @@ async fn main() -> color_eyre::Result<()> {
     let asset_tag = format!("stockfish-{platform}-{arch}{features}.");
     let out_path = PathBuf::from(std::env::var("OUT_DIR")?);
 
+    if std::fs::exists(dirs::cache_dir().unwrap().join())
+
+    let octocrab = octocrab::instance();
+    let latest_release = octocrab
+        .repos("official-stockfish", "Stockfish")
+        .releases()
+        .get_latest()
+        .await?;
+
     for asset in latest_release.assets {
         if asset.name.starts_with(&asset_tag) {
             let resp = reqwest::get(asset.browser_download_url).await?;
@@ -67,6 +70,10 @@ async fn main() -> color_eyre::Result<()> {
                 read_from_tar(resp, &asset_tag[..asset_tag.len() - 1], &out_path).await?
             };
 
+            println!(
+                "cargo:rustc-env=STOCKFISH_PATH={}",
+                binary_path.canonicalize()?.display()
+            );
             return Ok(());
         }
     }
@@ -108,3 +115,6 @@ async fn read_from_zip(resp: Response, out_path: &Path) -> color_eyre::Result<Pa
 
     return Err(color_eyre::Report::msg("No valid entry found"));
 }
+*/
+
+pub fn main() {}
